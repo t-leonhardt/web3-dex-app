@@ -129,4 +129,30 @@ function getOutputAmountFromSwap(
 
         ERC20(tokenAddress).transfer(msg.sender, tokensToReceive);
     }
+
+    // tokenToEthSwap allows users to swap tokens for ETH
+    function tokenToEthSwap(
+        uint256 tokensToSwap,
+        uint256 minEthToReceive
+        ) public {
+        uint256 tokenReserveBalance = getReserve();
+        uint256 ethToReceive = getOutputAmountFromSwap(
+            tokensToSwap,
+            tokenReserveBalance,
+            address(this).balance
+        );
+
+        require(
+            ethToReceive >= minEthToReceive,
+            "ETH received is less than minimum ETH expected"
+        );
+
+        ERC20(tokenAddress).transferFrom(
+            msg.sender,
+            address(this),
+            tokensToSwap
+        );
+
+        payable(msg.sender).transfer(ethToReceive);
+    }
 }
