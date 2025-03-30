@@ -113,4 +113,20 @@ function getOutputAmountFromSwap(
         return numerator / denominator;
     }
 
+    // swap ETH for tokens
+    function ethToTokenSwap(uint256 minTokensToReceive) public payable {
+        uint256 tokenReserveBalance = getReserve();
+        uint256 tokensToReceive = getOutputAmountFromSwap(
+            msg.value,
+            address(this).balance - msg.value,
+            tokenReserveBalance
+        );
+
+        require(
+            tokensToReceive >= minTokensToReceive,
+            "Tokens received are less than minimum tokens expected"
+        );
+
+        ERC20(tokenAddress).transfer(msg.sender, tokensToReceive);
+    }
 }
