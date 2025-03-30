@@ -21,7 +21,7 @@ contract Exchange is ERC20 {
     // addLiquidity allows users to add liquidity to the exchange
     function addLiquidity(
         uint256 amountOfToken
-    ) public payable returns (uint256) {
+        ) public payable returns (uint256) {
         uint256 lpTokensToMint;
         uint256 ethReserveBalance = address(this).balance;
         uint256 tokenReserveBalance = getReserve();
@@ -64,6 +64,33 @@ contract Exchange is ERC20 {
         _mint(msg.sender, lpTokensToMint);
 
         return lpTokensToMint;
+    }
+
+    // allow users to remove liquidity from exchange
+function removeLiquidity(
+    uint256 amountOfLPTokens
+    ) public returns (uint256, uint256) {
+        // Check that the user wants to remove >0 LP tokens
+        require(
+            amountOfLPTokens > 0,
+            "Amount of tokens to remove must be greater than 0"
+        );
+
+        uint256 ethReserveBalance = address(this).balance;
+        uint256 lpTokenTotalSupply = totalSupply();
+
+        // Calculate the amount of ETH and tokens to return to the user
+        uint256 ethToReturn = (ethReserveBalance * amountOfLPTokens) /
+            lpTokenTotalSupply;
+        uint256 tokenToReturn = (getReserve() * amountOfLPTokens) /
+            lpTokenTotalSupply;
+
+        // Burn LP tokens from user, and transfer ETH and tokens to user
+        _burn(msg.sender, amountOfLPTokens);
+        payable(msg.sender).transfer(ethToReturn);
+        ERC20(tokenAddress).transfer(msg.sender, tokenToReturn);
+
+        return (ethToReturn, tokenToReturn);
     }
 
 }
